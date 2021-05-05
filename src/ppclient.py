@@ -1,41 +1,35 @@
 from utils import *
 from enum import Enum, auto
 import curses
-from cursesmenu import SelectionMenu
-from cursesmenu.items import *
+from login_menu import Menu
 
 class State(Enum):
+	EXIT = auto()
 	LOGIN = auto()
 
-def login_menu():
-	options = { "Order", "Process", "Shipping" }
-	menu = SelectionMenu(options, title="Pliable Plastics Client")
-	return menu
-
 def pp_main(screen):
-	key = -1
-	login = login_menu()
-	i = 0
-
+	state = State.LOGIN
 	subWindow = screen.subwin(20, 3)
-	login.screen = subWindow
+	login = Menu(subWindow, "--=Select a view=--", [
+		"Orders",
+		"Customers",
+		"Exit"
+	])
 
 	while True:
-		curses.noecho()
+		# curses.noecho()
 		screen.clear()
-		# Drawing
-		place_str(screen, 1, 2, banner)
-		place_str(screen, 18, 2, i)
-		place_str(screen, 20, 3, key)
-	
-		subWindow.box('|', '-')
-		subWindow.refresh()
-
-		#set borders, draw screen
+		
+		# draw borders
 		screen.border('|', '|', '-', '-', '+', '+', '+', '+')
 		screen.refresh()
 
-		login.show()
-		loginChoice = login.selected_item.text
-		if loginChoice == "Exit":
+		# state
+		if state == State.LOGIN:
+			place_str(screen, 1, 2, banner)
+			screen.refresh()
+			login.loop()
+			if login.get_selection_text() == "Exit":
+				state = State.EXIT
+		if state == State.EXIT:
 			break

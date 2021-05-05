@@ -35,8 +35,11 @@ promptLogin = '''
 # the screen. It appears addstr()/insstr() does not
 # use the x-coordinate argument, so this function is
 # the workaround for that.
-def place_str(screen, y: int, x: int, text):
+def place_str(screen, y: int, x: int, text, highlighted = False):
 	text = str(text)
 	arr = text.splitlines()
 	for i in range(len(arr)):
-		screen.addstr(y + i, x, arr[i])
+		if highlighted:
+			screen.addstr(y + i, x, arr[i], curses.A_REVERSE)
+		else:
+			screen.addstr(y + i, x, arr[i])

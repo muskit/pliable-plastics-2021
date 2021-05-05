@@ -1,13 +1,9 @@
-from ppclient import pp_main
-import curses
+import ppclient
+from curses import wrapper
 
 def main():
-	input("Resize terminal to desired size, then press enter to continue.")
-	
-	screen = curses.initscr()
-	pp_main(screen)
-	curses.endwin()
-	# curses.wrapper(pp_main)
+	input("Resize terminal to desired (preferably largest) size, then press ENTER to continue.\nDO NOT resize the terminal after pressing ENTER!")
+	wrapper(ppclient.pp_main)
 
 if __name__ == "__main__":
 	main()
