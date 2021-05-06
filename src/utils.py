@@ -19,15 +19,6 @@ banner = '''
 ██║     ███████╗██║  ██║███████║   ██║   ██║╚██████╗███████║
 ╚═╝     ╚══════╝╚═╝  ╚═╝╚══════╝   ╚═╝   ╚═╝ ╚═════╝╚══════╝
 '''
-promptLogin = '''
- _______________
-|  Select View  |
- ---------------
-| 1. Customers  |
-| 2. Orders     |
-| 3. Shipping   |
- ---------------
-'''
 
 ## Functions
 
@@ -35,11 +26,15 @@ promptLogin = '''
 # the screen. It appears addstr()/insstr() does not
 # use the x-coordinate argument, so this function is
 # the workaround for that.
-def place_str(screen, y: int, x: int, text, highlighted = False):
+def place_str(screen, y: int, x: int, text, bold = False, highlight = False):
 	text = str(text)
 	arr = text.splitlines()
+
+	attr = 0
+	if highlight:
+		attr = attr | curses.A_REVERSE
+	if bold:
+		attr = attr | curses.A_BOLD
+
 	for i in range(len(arr)):
-		if highlighted:
-			screen.addstr(y + i, x, arr[i], curses.A_REVERSE)
-		else:
-			screen.addstr(y + i, x, arr[i])
+		screen.addstr(y + i, x, arr[i], attr)

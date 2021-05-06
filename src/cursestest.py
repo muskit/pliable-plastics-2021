@@ -1,42 +1,36 @@
+from curseXcel import Table
 import curses
+import npyscreen
 
-def moveWindow():
-    # The `screen` is a window that acts as the master window
-    # that takes up the whole screen. Other windows created
-    # later will get painted on to the `screen` window.
-    screen = curses.initscr()
+class TestApp(npyscreen.NPSApp):
+    def main(self):
+        # These lines create the form and populate it with widgets.
+        # A fairly complex screen in only 8 or so lines of code - a line for each control.
+        F  = npyscreen.Form(name = "Welcome to Npyscreen",)
+        t  = F.add(npyscreen.TitleText, name = "Text:",)
+        fn = F.add(npyscreen.TitleFilename, name = "Filename:")
+        fn2 = F.add(npyscreen.TitleFilenameCombo, name="Filename2:")
+        dt = F.add(npyscreen.TitleDateCombo, name = "Date:")
+        s  = F.add(npyscreen.TitleSlider, out_of=12, name = "Slider")
+        ml = F.add(npyscreen.MultiLineEdit,
+               value = """try typing here!\nMutiline text, press ^R to reformat.\n""",
+               max_height=5, rely=9)
+        ms = F.add(npyscreen.TitleSelectOne, max_height=4, value = [1,], name="Pick One",
+                values = ["Option1","Option2","Option3"], scroll_exit=True)
+        ms2= F.add(npyscreen.TitleMultiSelect, max_height =-2, value = [1,], name="Pick Several",
+                values = ["Option1","Option2","Option3"], scroll_exit=True)
 
-    # lines, columns, start line, start column
-    my_window = curses.newwin(15, 20, 0, 0)
+        # This lets the user interact with the Form.
+        F.edit()
 
-    # Long strings will wrap to the next line automatically
-    # to stay within the window
-    my_window.addstr(4, 4, "Hello from 4,4")
-    my_window.addstr(5, 15, "Hello from 5,15 with a long string")
+        print(ms.get_selected_objects())
 
-    # Print the window to the screen
-    my_window.refresh()
-    curses.napms(2000)
+if __name__ == "__main__":
+    App = TestApp()
+    App.run()
 
-    # Clear the screen, clearing my_window contents that were printed to screen
-    # my_window will retain its contents until my_window.clear() is called.
-    screen.clear()
-    screen.refresh()
-
-    # Move the window and put it back on screen
-    # If we didn't clear the screen before doing this,
-    # the original window contents would remain on the screen
-    # and we would see the window text twice.
-    my_window.mvwin(10, 10)
-    my_window.refresh()
-    curses.napms(1000)
-
-    # Clear the window and redraw over the current window space
-    # This does not require clearing the whole screen, because the window
-    # has not moved position.
-    my_window.clear()
-    my_window.refresh()
-    curses.napms(1000)
-
-    curses.endwin()
-
+def myFunction(*args):
+    F = npyscreen.Form(name='My Test Application')
+    myFW = F.add(npyscreen.TitleText, name="First Widget")   # <------- Change 1
+    F.edit()
+    return myFW.value   # <------- Change 2
