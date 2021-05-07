@@ -3,12 +3,14 @@ import curses
 
 
 class Menu:
-    def __init__(self, screen, title, choices: list[(str, object)] = []):
+    def __init__(self, screen, title, choices: list[(str, object)] = [], vertical = True):
         self.screen = screen
         self.title = title
+        self.vertical = vertical
         self.choices = choices
         self.selection = 0
         self.highlighted = 0
+        self.curVisible = True
 
     def get_text_of(self, idx):
         try:
@@ -18,27 +20,48 @@ class Menu:
 
     def get_selection_text(self):
         return self.choices[self.selection][0]
+    def get_highlighted_text(self):
+        return self.choices[self.highlighted][0]
+
+    def highlight_prev(self):
+        self.highlighted = self.highlighted - 1 if self.highlighted > 0 else len(self.choices) - 1
+    def highlight_next(self):
+        self.highlighted = self.highlighted + 1 if self.highlighted < len(self.choices) - 1 else 0
     
     def input(self, key):
-        if key == curses.KEY_UP:
-            self.highlighted = self.highlighted - 1 if self.highlighted > 0 else len(self.choices) - 1
-        elif key == curses.KEY_DOWN:
-            self.highlighted = self.highlighted + 1 if self.highlighted < len(self.choices) - 1 else 0
-        elif key in { curses.KEY_ENTER, 10, 13 }:
+        if self.vertical:
+            if key == curses.KEY_UP:
+                self.highlight_prev()
+            elif key == curses.KEY_DOWN:
+                self.highlight_next()
+        else:
+            if key == curses.KEY_LEFT:
+                self.highlight_prev()
+            elif key == curses.KEY_RIGHT:
+                self.highlight_next()
+
+        if key in { curses.KEY_ENTER, 10, 13 }:
             self.selection = self.highlighted
             return True
         return False
+
+    def refresh(self):
+        self.screen.clear()
+        place_str(self.screen, 0, 0, self.title, True, False)
+        xCoord = 0
+        for indx in range(len(self.choices)):
+            if self.vertical:
+                place_str(self.screen, 1+indx, 0, self.choices[indx][0], False, self.curVisible and indx == self.highlighted)
+            else:
+                place_str(self.screen, 1, xCoord, self.choices[indx][0], False, self.curVisible and indx == self.highlighted)
+                xCoord += len(self.choices[indx][0]) + 2
+
+        self.screen.refresh()
+        
     
     def loop(self):
-        key = -1
         while True:
-            self.screen.clear()
-            place_str(self.screen, 0, 0, self.title, True, False)
-            place_str(self.screen, 1, 0, key, curses.A_DIM)
-            for indx in range(len(self.choices)):
-                place_str(self.screen, 1+indx, 0, self.choices[indx][0], False, indx == self.highlighted)
-
-            self.screen.refresh()
+            self.refresh()
 
             key = self.screen.getch()
             if self.input(key):
