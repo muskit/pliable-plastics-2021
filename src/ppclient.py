@@ -4,11 +4,11 @@ from enum import Enum, auto
 from utils import *
 from menu import Menu
 from customer import *
+import database
 
 class State(Enum):
 	EXIT = auto()
 	CUSTOMER = auto()
-	MODIFYCUST = auto()
 	ORDER = auto()
 	DESIGN = auto()
 	PRODUCTION = auto()
@@ -17,7 +17,6 @@ class State(Enum):
 def pp_main(screen):
 	subWindow = screen.subwin(17, 3)
 	login = Menu(subWindow, "--=Select a view=--", [
-		("Orders", State.ORDER),
 		("Customers", State.CUSTOMER),
 		("Orders", State.ORDER),
 		("Designs", State.DESIGN),
@@ -26,8 +25,8 @@ def pp_main(screen):
 		("Exit", State.EXIT)
 	])
 
-	sampleCust0 = Customer("Emlen Smales", "5254716325", "esmales1@exblog.jp", "5 Comanche Way", "Maple Plain", "MN", "55579", "231")
-	sampleCust1 = Customer("Joe Mama", "6219897283", "wtf@example.net", "823 Bottom View Way", "Hell", "MI", "62266", "80")
+	sampleCust0 = Customer("99999", "Emlen Smales", "5254716325", "esmales1@exblog.jp", "5 Comanche Way", "Maple Plain", "MN", "55579")
+	sampleCust1 = Customer("99999", "Joe Mama", "6219897283", "wtf@example.net", "823 Bottom View Way", "Hell", "MI", "62266")
 
 	while True:
 		# curses.noecho()
@@ -47,9 +46,6 @@ def pp_main(screen):
 			break
 		if state == State.CUSTOMER:
 			cl = CustomerListing(screen)
-			cl.add_customer(sampleCust0)
-			cl.add_customer(sampleCust1)
 			cl.loop()
-		if state == State.MODIFYCUST:
-			f = CustomerForm(sampleCust)
-			f.edit()
+		if state == State.ORDER:
+			pass

@@ -54,7 +54,7 @@ class Menu:
                 place_str(self.screen, 1+indx, 0, self.choices[indx][0], False, self.curVisible and indx == self.highlighted)
             else:
                 place_str(self.screen, 1, xCoord, self.choices[indx][0], False, self.curVisible and indx == self.highlighted)
-                xCoord += len(self.choices[indx][0]) + 2
+                xCoord += len(self.choices[indx][0]) + 3
 
         self.screen.refresh()
         
