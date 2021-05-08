@@ -29,8 +29,8 @@ class CustomerForm(npyscreen.FormBaseNew):
         else:
             self.name = "Editing customer info for {} ({})".format(self.myName.value, self.myID)
 
-        self.add(npyscreen.ButtonPress, name = "Save", rely = 17, when_pressed_function = self.save_customer)
-        self.add(npyscreen.ButtonPress, name = "Cancel", rely = 17, relx = 10, when_pressed_function = self.exit_editing)
+        self.add(npyscreen.ButtonPress, name = "Save", rely = -4, when_pressed_function = self.save_customer)
+        self.add(npyscreen.ButtonPress, name = "Cancel", rely = -4, relx = 10, when_pressed_function = self.exit_editing)
 
     # TODO
     def save_customer(self):
@@ -48,7 +48,7 @@ class CustomerForm(npyscreen.FormBaseNew):
                         self.myState.value,
                         self.myPostalCode.value)
 
-# Customers table view. From here, we can add and modify customers.
+# Customers table view. From here, we can add, modify, and retrieve customers.
 class CustomerListing:
     def __init__(self, screen):
         self.customerList = []
@@ -65,13 +65,15 @@ class CustomerListing:
         self.regenerate_table()        
 
     def regenerate_table(self):
-        self.table = Table(self.tableWindow, len(self.customerList), 5, (self.tableWinSize[1]//5) - 1, self.tableWinSize[1], self.tableWinSize[0] - 3, col_names = True, spacing = 1)
+        cols = ['ID', 'Name', 'Phone Number', 'E-Mail Address', 'City/State']
+        # self.table = Table(self.tableWindow, len(self.customerList), 5, (self.tableWinSize[1]//5) - 1, self.tableWinSize[1], self.tableWinSize[0] - 3, col_names = True, spacing = 1)
+        self.table = create_table(self.tableWindow, cols, len(self.customerList))
 
-        self.table.set_column_header("ID", 0)
-        self.table.set_column_header("Name", 1)
-        self.table.set_column_header("Phone Number", 2)
-        self.table.set_column_header("E-mail Address", 3)
-        self.table.set_column_header("City/State", 4)
+        # self.table.set_column_header("ID", 0)
+        # self.table.set_column_header("Name", 1)
+        # self.table.set_column_header("Phone Number", 2)
+        # self.table.set_column_header("E-mail Address", 3)
+        # self.table.set_column_header("City/State", 4)
 
         idx = 0
         for cust in self.customerList:
@@ -95,13 +97,14 @@ class CustomerListing:
     # modes: 0 = creation/edit, 1 = selection (should return a Customer obj)
     def loop(self, mode = 0):
         key = None
-        optionsWin = self.screen.subwin(2, self.tableWinSize[1], self.screenSize[0]-10, 5)
-        options = Menu(optionsWin, "Options", [
+        optionsWin = self.screen.subwin(2, self.tableWinSize[1], self.screenSize[0]-5, 5)
+        optionsList = [
             ("View/Edit" if mode == 0 else "Select", None),
             ("Add New Customer", None),
             ("Refresh", None),
             ("Exit", None)
-        ], False)
+        ]
+        options = Menu(optionsWin, "Options", optionsList, False)
         while True:
             self.screen.clear()
             self.table.refresh()

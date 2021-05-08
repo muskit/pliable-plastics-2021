@@ -2,46 +2,65 @@
 import curses
 import npyscreen
 from curseXcel import Table
-from copy import deepcopy
+from collections import namedtuple
 
 from utils import *
 from menu import *
 from customer import *
-from collections import namedtuple
-
 from structs import *
 
-# customer modifcation/creation form (lib: npyscreen)
+
 class OrderForm(npyscreen.FormBaseNew):
     def __init__(self, newOrder: Order = None, *args, **kwargs):
-        self.order = deepcopy(newOrder)
+        self.order = newOrder
+        self.cust = self.order.customer if self.order != None else None
         super(OrderForm, self).__init__(*args, **kwargs)
+
     def create(self):
-        self.myOrderDate = self.add(npyscreen.TitleText, name = "Phone Number", value = self.order.phoneNum if self.order != None else "", begin_entry_at = 0, use_two_lines = True, rely=5)
-        self.myCustId = self.add(npyscreen.TitleText, name = "E-Mail Address", value = self.order.email if self.order != None else "", begin_entry_at = 0, use_two_lines = True)
-        self.myDesignId = self.add(npyscreen.TitleText, name="Street Address", value = self.order.streetAddress if self.order != None else "", begin_entry_at = 0, use_two_lines = True, rely=10)
+        #self.myCust = self.add(npyscreen.TitleText, name = "Customer", value = self.order.phoneNum if self.order != None else "", begin_entry_at = 0, use_two_lines = True)
+        self.add(npyscreen.FixedText, value = "Customer", editable = False)
+        self.myCust = self.add(npyscreen.ButtonPress, name = self.cust.name if self.cust != None else "Select a customer", when_pressed_function = self.set_customer)
+
+        self.add(npyscreen.FixedText, value = "Design Details", editable = False, rely = 8)
+        self.myDesc = self.add(npyscreen.TitleText, name = self.order.design.description if self.order != None else "Description", value = self.order.description if self.order != None else "")
+        self.myFile = self.add(npyscreen.TitleText, name = self.order.design.file if self.order != None else "File", value = "")
+
+        self.add(npyscreen.FixedText, value = "Material", rely = 13, editable = False)
+        self.myMat = self.add(npyscreen.ButtonPress, name = self.order.design.material.name if self.order != None else "Select material", when_pressed_function = self.set_material)
+        self.myQuantity = self.add(npyscreen.TitleText, name = "Quantity", value = self.order.design.approxSize if self.order != None else "")
 
         if self.order == None:
             self.name = "Creating an Order"
         else:
-            self.name = "Editing order {}".format(self.myID)
+            self.name = "Editing order {} (placed on {})".format(self.order.id, self.order.orderDate)
             
-        self.add(npyscreen.ButtonPress, name = "Save", rely = 17)
-        self.add(npyscreen.ButtonPress, name = "Cancel", rely = 17, relx = 10, when_pressed_function = self.exit_editing)
+        self.add(npyscreen.ButtonPress, name = "Save", rely = -4)
+        self.add(npyscreen.ButtonPress, name = "Cancel", rely = -4, relx = 10, when_pressed_function = self.exit_editing)
 
-        # TODO
-        def save_order(self):
-            order = get_order()
-            if order.id == None: # create new order
-                pass
-            else: # update existing order
-                pass
+    # TODO
+    def save_order(self):
+        order = get_order()
+        if order.id == None: # create new order
+            pass
+        else: # update existing order
+            pass
 
-        def get_order(self):
-            return Order(self.Id,
-                         self.myOrderDate,
-                         self.myCustId,
-                         self.myDesignId)
+    def get_order(self):
+        return Order(self.Id,
+                     self.myOrderDate,
+                     self.myCustId,
+                     self.myDesignId)
+                        
+    def set_customer(self):
+        custScreen = curses.initscr()
+        cl = CustomerListing(custScreen)
+        self.cust = cl.loop(1)
+        self.myCust.name = "{} ({})".format(self.cust.name, self.cust.id) if self.cust != None else "No Customer"
+        self.DISPLAY()
+
+    def set_material(self):
+        pass
+
 
 # Orders table view. From here, we can create and modify orders.
 class OrderListing:
@@ -53,47 +72,34 @@ class OrderListing:
         self.tableWindow = self.screen.subwin(self.screenSize[0]-14, self.screenSize[1]-10, 4, 5)
         self.tableWinSize = self.tableWindow.getmaxyx()
 
-        self.regenerate_table()
-
-        self.optionsWin = self.screen.subwin(2, self.tableWinSize[1], self.screenSize[0]-10, 5)
+        self.optionsWin = self.screen.subwin(2, self.tableWinSize[1], self.screenSize[0]-5, 5)
         self.options = Menu(self.optionsWin, "Options", [
             ("View/Edit", None),
-            ("Add New Customer", None),
+            ("Place New Order", None),
             ("Exit", None)
         ], False)
+
+        self.refresh_table()
         
     def refresh_table(self):
-        # TODO: Retrieve data
-        regenerate_table()    
+        self.orderList = database.retrieve(Order)
+        self.regenerate_table()    
 
     def regenerate_table(self):
-        self.table = Table(self.tableWindow, len(self.customerList), 5, (self.tableWinSize[1]//5) - 3, self.tableWinSize[1], self.tableWinSize[0] - 3, col_names = True, spacing = 1)
-
-        self.table.set_column_header("ID", 0)
-        self.table.set_column_header("Name", 1)
-        self.table.set_column_header("Phone Number", 2)
-        self.table.set_column_header("E-mail Address", 3)
-        self.table.set_column_header("City/State", 4)
+        cols = ['ID', 'Customer', 'Description', 'Order Placed']
+        self.table = create_table(self.tableWindow, cols, len(self.orderList))
 
         idx = 0
-        for cust in self.customerList:
-            self.table.set_cell(idx, 0, cust.id)
-            self.table.set_cell(idx, 1, cust.name)
-            self.table.set_cell(idx, 2, cust.phoneNum)
-            self.table.set_cell(idx, 3, cust.email)
-            self.table.set_cell(idx, 4, "{}, {}}".format(cust.city, cust.state))
-            
+        for order in self.orderList:
+            self.table.set_cell(idx, 0, order.id)
+            self.table.set_cell(idx, 1, order.customer.name)
+            self.table.set_cell(idx, 2, order.design.description)
+            self.table.set_cell(idx, 3, order.date)
             idx += 1
 
         # get table cursor to appropriate spot
         self.table.cursor_down()
         self.table.cursor_down()
-
-    def add_customer(self, newCust: Customer):
-        if newCust != None and type(newCust) == Customer:
-            print("Adding new customer {}".format(newCust.id))
-            self.customerList.append(deepcopy(newCust))
-            self.regenerate_table()
 
     def loop(self):
         key = None
@@ -105,7 +111,7 @@ class OrderListing:
             # place_str(self.screen, 30,5, str(key), highlight=True)
             self.options.refresh()
 
-            place_str(self.screen, 3,5, "--Customer Data--", True, True)
+            place_str(self.screen, 3,5, "--Order History--", True, True)
             self.screen.border('|', '|', '-', '-', '+', '+', '+', '+')
             # self.tableWindow.box('|', '-')
             # self.optionsWin.box('|', '-')
@@ -125,10 +131,9 @@ class OrderListing:
             
             if key in { curses.KEY_ENTER, 10, 13 }:
                 if self.options.highlighted == 0: # View/Edit
-                    f = CustomerForm(self.customerList[self.table.cursor[0] - 1])
-                    f.edit()
-                if self.options.highlighted == 1: # Add New Customer
-                    f = CustomerForm()
+                    pass
+                if self.options.highlighted == 1: # Place New Order
+                    f = OrderForm()
                     f.edit()
                 if self.options.get_highlighted_text() == "Exit":
                     break

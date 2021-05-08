@@ -3,8 +3,10 @@ from enum import Enum, auto
 
 from utils import *
 from menu import Menu
-from customer import *
 import database
+
+from customer import *
+from order import *
 
 class State(Enum):
 	EXIT = auto()
@@ -15,6 +17,7 @@ class State(Enum):
 	SHIPPING = auto()
 
 def pp_main(screen):
+	globals()['winscr'] = screen
 	subWindow = screen.subwin(17, 3)
 	login = Menu(subWindow, "--=Select a view=--", [
 		("Customers", State.CUSTOMER),
@@ -48,4 +51,5 @@ def pp_main(screen):
 			cl = CustomerListing(screen)
 			cl.loop()
 		if state == State.ORDER:
-			pass
+			of = OrderListing(screen)
+			of.loop()

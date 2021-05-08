@@ -1,5 +1,6 @@
 # -*- coding: UTF-8 -*-
 import curses
+import curseXcel
 
 ## Strings
 
@@ -38,3 +39,13 @@ def place_str(screen, y: int, x: int, text, bold = False, highlight = False):
 
 	for i in range(len(arr)):
 		screen.addstr(y + i, x, arr[i], attr)
+
+def create_table(screen, cols: [str], rows, height_shorten_by = 0):
+	dim = screen.getmaxyx()
+	table = curseXcel.Table(screen, rows, len(cols), (dim[1]//len(cols)) - 1, dim[1], dim[0] - height_shorten_by, col_names = True, spacing = 1)
+
+	idx = 0
+	for col in cols:
+		table.set_column_header(col, idx)
+		idx += 1
+	return table
