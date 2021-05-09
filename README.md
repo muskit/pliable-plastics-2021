@@ -3,7 +3,6 @@ An application for internal use at Pliable Plastics offices.
 
 **PIP Dependencies:**
 - if on Windows, ```windows-curses```
-- ```curses-menu``` (may not be used)
 - ```mysql-connector-python```
 - ```curseXcel```
 - ```npyscreen```

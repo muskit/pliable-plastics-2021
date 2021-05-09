@@ -30,14 +30,14 @@ class Menu:
     
     def input(self, key):
         if self.vertical:
-            if key == curses.KEY_UP:
+            if key in { curses.KEY_UP, 65 }:
                 self.highlight_prev()
-            elif key == curses.KEY_DOWN:
+            elif key in { curses.KEY_DOWN, 66 }:
                 self.highlight_next()
         else:
-            if key == curses.KEY_LEFT:
+            if key in { curses.KEY_LEFT, 68 }:
                 self.highlight_prev()
-            elif key == curses.KEY_RIGHT:
+            elif key in { curses.KEY_RIGHT, 67 }:
                 self.highlight_next()
 
         if key in { curses.KEY_ENTER, 10, 13 }:

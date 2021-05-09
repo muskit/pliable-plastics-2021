@@ -7,6 +7,7 @@ import database
 
 from customer import *
 from order import *
+from material import *
 
 class State(Enum):
 	EXIT = auto()
@@ -15,6 +16,7 @@ class State(Enum):
 	DESIGN = auto()
 	PRODUCTION = auto()
 	SHIPPING = auto()
+	MATERIALS = auto()
 
 def pp_main(screen):
 	globals()['winscr'] = screen
@@ -22,9 +24,10 @@ def pp_main(screen):
 	login = Menu(subWindow, "--=Select a view=--", [
 		("Customers", State.CUSTOMER),
 		("Orders", State.ORDER),
-		("Designs", State.DESIGN),
+		# ("Designs", State.DESIGN),
 		("Production", State.PRODUCTION),
 		("Shipping", State.SHIPPING),
+		("Manage Materials", State.MATERIALS),
 		("Exit", State.EXIT)
 	])
 
@@ -51,5 +54,8 @@ def pp_main(screen):
 			cl = CustomerListing(screen)
 			cl.loop()
 		if state == State.ORDER:
-			of = OrderListing(screen)
-			of.loop()
+			ol = OrderListing(screen)
+			ol.loop()
+		if state == State.MATERIALS:
+			ml = MaterialListing(screen)
+			ml.loop()

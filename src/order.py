@@ -3,17 +3,20 @@ import curses
 import npyscreen
 from curseXcel import Table
 from collections import namedtuple
+import datetime
 
 from utils import *
 from menu import *
-from customer import *
 from structs import *
 
+from customer import *
+import material
 
 class OrderForm(npyscreen.FormBaseNew):
     def __init__(self, newOrder: Order = None, *args, **kwargs):
         self.order = newOrder
         self.cust = self.order.customer if self.order != None else None
+        self.material = self.order.design.material if self.order != None else None
         super(OrderForm, self).__init__(*args, **kwargs)
 
     def create(self):
@@ -21,35 +24,37 @@ class OrderForm(npyscreen.FormBaseNew):
         self.add(npyscreen.FixedText, value = "Customer", editable = False)
         self.myCust = self.add(npyscreen.ButtonPress, name = self.cust.name if self.cust != None else "Select a customer", when_pressed_function = self.set_customer)
 
-        self.add(npyscreen.FixedText, value = "Design Details", editable = False, rely = 8)
-        self.myDesc = self.add(npyscreen.TitleText, name = self.order.design.description if self.order != None else "Description", value = self.order.description if self.order != None else "")
-        self.myFile = self.add(npyscreen.TitleText, name = self.order.design.file if self.order != None else "File", value = "")
+        self.add(npyscreen.FixedText, value = "Design Details", editable = False, rely = 7)
+        self.myDesc = self.add(npyscreen.TitleText, name = "Description", value = self.order.design.description if self.order != None else "")
+        self.myFile = self.add(npyscreen.TitleText, name = "File", value = self.order.design.file if self.order != None else "")
 
         self.add(npyscreen.FixedText, value = "Material", rely = 13, editable = False)
-        self.myMat = self.add(npyscreen.ButtonPress, name = self.order.design.material.name if self.order != None else "Select material", when_pressed_function = self.set_material)
+        self.myMat = self.add(npyscreen.ButtonPress, name = self.material.name if self.order != None else "Select material", when_pressed_function = self.set_material)
         self.myQuantity = self.add(npyscreen.TitleText, name = "Quantity", value = self.order.design.approxSize if self.order != None else "")
 
         if self.order == None:
             self.name = "Creating an Order"
         else:
-            self.name = "Editing order {} (placed on {})".format(self.order.id, self.order.orderDate)
+            self.name = "Editing order #{} (placed on {})".format(self.order.id, self.order.date)
             
-        self.add(npyscreen.ButtonPress, name = "Save", rely = -4)
+        self.add(npyscreen.ButtonPress, name = "Save", rely = -4, when_pressed_function=self.save_order)
         self.add(npyscreen.ButtonPress, name = "Cancel", rely = -4, relx = 10, when_pressed_function = self.exit_editing)
 
     # TODO
     def save_order(self):
-        order = get_order()
-        if order.id == None: # create new order
-            pass
-        else: # update existing order
-            pass
+        order = self.get_order()
+        database.push(order)
+        self.exit_editing()
 
     def get_order(self):
-        return Order(self.Id,
-                     self.myOrderDate,
-                     self.myCustId,
-                     self.myDesignId)
+        return Order(self.order.id if self.order != None else None,
+                     self.order.date if self.order != None else datetime.date.today(),
+                     Design(self.order.design.id if self.order != None else None,
+                            self.myDesc.value,
+                            self.myFile.value,
+                            self.myQuantity.value,
+                            self.material),
+                     self.cust)
                         
     def set_customer(self):
         custScreen = curses.initscr()
@@ -59,7 +64,9 @@ class OrderForm(npyscreen.FormBaseNew):
         self.DISPLAY()
 
     def set_material(self):
-        pass
+        scr = curses.initscr()
+        ml = material.MaterialListing(scr)
+        self.material = ml.loop(True)
 
 
 # Orders table view. From here, we can create and modify orders.
@@ -129,9 +136,12 @@ class OrderListing:
             if key in {curses.KEY_LEFT, curses.KEY_RIGHT}:
                 self.options.input(key)
             
-            if key in { curses.KEY_ENTER, 10, 13 }:
+            if key in { curses.KEY_ENTER, 10, 13 } and self.table.cursor[0] > 0:
+                order = self.orderList[self.table.cursor[0] - 1]
                 if self.options.highlighted == 0: # View/Edit
-                    pass
+                    of = OrderForm(order)
+                    of.edit() 
+                    self.refresh_table()
                 if self.options.highlighted == 1: # Place New Order
                     f = OrderForm()
                     f.edit()

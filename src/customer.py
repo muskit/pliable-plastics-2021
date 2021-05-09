@@ -95,11 +95,11 @@ class CustomerListing:
             self.regenerate_table()
 
     # modes: 0 = creation/edit, 1 = selection (should return a Customer obj)
-    def loop(self, mode = 0):
+    def loop(self, selectMode = 0):
         key = None
         optionsWin = self.screen.subwin(2, self.tableWinSize[1], self.screenSize[0]-5, 5)
         optionsList = [
-            ("View/Edit" if mode == 0 else "Select", None),
+            ("View/Edit" if selectMode else "Select", None),
             ("Add New Customer", None),
             ("Refresh", None),
             ("Exit", None)
@@ -110,7 +110,7 @@ class CustomerListing:
             self.table.refresh()
             options.refresh()
 
-            place_str(self.screen, 3,5, "--Customer Data--" if mode == 0 else "--Select a customer--", True, True)
+            place_str(self.screen, 3,5, "--Customer Data--" if selectMode else "--Select a customer--", True, True)
             self.screen.border('|', '|', '-', '-', '+', '+', '+', '+')
             self.screen.refresh()
             
@@ -129,7 +129,7 @@ class CustomerListing:
             if key in { curses.KEY_ENTER, 10, 13 }:
                 if options.highlighted == 0 and self.table.cursor[0] > 0: # View/Edit / Select
                     customer = self.customerList[self.table.cursor[0] - 1]
-                    if mode == 0:
+                    if selectMode:
                         f = CustomerForm(customer)
                         f.edit()
                         self.refresh_table()
