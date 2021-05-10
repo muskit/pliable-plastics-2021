@@ -8,6 +8,7 @@ import database
 from customer import *
 from order import *
 from material import *
+from shipment import *
 
 class State(Enum):
 	EXIT = auto()
@@ -59,3 +60,6 @@ def pp_main(screen):
 		if state == State.MATERIALS:
 			ml = MaterialListing(screen)
 			ml.loop()
+		if state == State.SHIPPING:
+			sl = ShipmentListing(screen)
+			sl.loop()

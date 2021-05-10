@@ -19,15 +19,20 @@ class Menu:
             return -1
 
     def get_selection_text(self):
-        return self.choices[self.selection][0]
+        return self.get_text_of(self.selection)
     def get_highlighted_text(self):
-        return self.choices[self.highlighted][0]
+        return self.get_text_of(self.highlighted)
+
+    def get_selection(self):
+        return self.choices[self.selection][1]
+    def get_highlighted(self):
+        return self.choices[self.highlighted][1]
 
     def highlight_prev(self):
         self.highlighted = self.highlighted - 1 if self.highlighted > 0 else len(self.choices) - 1
     def highlight_next(self):
         self.highlighted = self.highlighted + 1 if self.highlighted < len(self.choices) - 1 else 0
-    
+
     def input(self, key):
         if self.vertical:
             if key in { curses.KEY_UP, 65 }:

@@ -95,11 +95,11 @@ class CustomerListing:
             self.regenerate_table()
 
     # modes: 0 = creation/edit, 1 = selection (should return a Customer obj)
-    def loop(self, selectMode = 0):
+    def loop(self, selectMode = False):
         key = None
         optionsWin = self.screen.subwin(2, self.tableWinSize[1], self.screenSize[0]-5, 5)
         optionsList = [
-            ("View/Edit" if selectMode else "Select", None),
+            ("Select" if selectMode else "View/Edit", None),
             ("Add New Customer", None),
             ("Refresh", None),
             ("Exit", None)
@@ -130,11 +130,11 @@ class CustomerListing:
                 if options.highlighted == 0 and self.table.cursor[0] > 0: # View/Edit / Select
                     customer = self.customerList[self.table.cursor[0] - 1]
                     if selectMode:
+                        return customer
+                    else: # Select mode
                         f = CustomerForm(customer)
                         f.edit()
                         self.refresh_table()
-                    else: # Select mode
-                        return customer
                 if options.highlighted == 1: # Add New Customer
                     f = CustomerForm()
                     f.edit()

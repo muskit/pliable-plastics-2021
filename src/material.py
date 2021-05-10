@@ -30,7 +30,7 @@ class MaterialListing:
         self.regenerate_table()
 
     def regenerate_table(self):
-        tableCols = ['ID', 'Name', 'Price', 'Quantity', 'Vendor']
+        tableCols = ['ID', 'Name', 'Price', 'In Stock (kg)', 'Vendor']
         self.table = create_table(self.tableWindow, tableCols, len(self.materialList))
         
         idx = 0
@@ -40,6 +40,7 @@ class MaterialListing:
             self.table.set_cell(idx, 2, mat.price)
             self.table.set_cell(idx, 3, mat.quantity)
             self.table.set_cell(idx, 4, "{} (#{})".format(mat.vendor.name, mat.vendor.id))
+            idx += 1
         self.table.cursor_down()
         self.table.cursor_down()
 
@@ -71,5 +72,11 @@ class MaterialListing:
             
             if key in { curses.KEY_ENTER, 10, 13 } and self.table.cursor[0] > 0:
                 mat = self.materialList[self.table.cursor[0] - 1]
-                if menu.get_highlighted_text() == "Exit":
+                if menu.get_highlighted() == MenuChoice.EXIT:
                     break
+                elif menu.get_highlighted() == MenuChoice.SELECT:
+                    return mat
+                elif menu.get_highlighted() == MenuChoice.EDIT:
+                    pass
+                elif menu.get_highlighted() == MenuChoice.ADD:
+                    pass

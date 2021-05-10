@@ -52,22 +52,42 @@ def push(obj):
             globals()['dbCursor'].execute(queryAddr.format(obj.streetAddress, obj.city, obj.state, obj.postalCode, obj.id))
     elif type(obj) == Order:
         if obj.id == None: # Create new Order
+            queryDesign = ("INSERT INTO Design "
+                         "(description, file, approx_size, material_id) "
+                         "VALUES ('{}','{}','{}','{}')"
+                         .format(obj.design.description, obj.design.file, obj.design.approxSize, obj.design.material.id))
+            
+            globals()['dbCursor'].execute(queryDesign)
+
+            rowDesignId = globals()['dbCursor'].lastrowid
             queryOrder = ("INSERT INTO Orders "
-                         "(customer_name, phone_number, email) "
-                         "VALUES ('{}','{}','{}')")
-            queryDesign = ("INSERT INTO Addresses "
-                         "(street_address, postal_code, state, city, customer_id) "
-                         "VALUES ('{}','{}','{}','{}','{}')")
+                         "(order_date, customer_id, design_id, quantity) "
+                         "VALUES ('{}','{}','{}','{}')"
+                         .format(obj.date, obj.customer.id, rowDesignId, obj.quantity))
+
+            globals()['dbCursor'].execute(queryOrder)
+            
         else: # Update existing order
             queryOrder = ("UPDATE Orders "
-                          "SET order_date = '{}', customer_id = '{}', design_id = '{}' "
-                          "WHERE order_id = '{}'")
+                          "SET order_date = '{}', customer_id = '{}', design_id = '{}', quantity = {} "
+                          "WHERE order_id = '{}'"
+                          .format(obj.date, obj.customer.id, obj.design.id, obj.quantity, obj.id))
             queryDesign = ("UPDATE Design "
                            "SET description = '{}', file = '{}', approx_size = '{}', material_id = '{}' "
-                           "WHERE design_id = '{}' ")
-
-            globals()['dbCursor'].execute(queryDesign.format(obj.design.description, obj.design.file, obj.design.approxSize, obj.design.material.id, obj.design.id))
-            globals()['dbCursor'].execute(queryOrder.format(obj.date, obj.customer.id, obj.design.id, obj.id))
+                           "WHERE design_id = '{}' "
+                           .format(obj.design.description, obj.design.file, obj.design.approxSize, obj.design.material.id, obj.design.id))
+                           
+            globals()['dbCursor'].execute(queryOrder)
+            globals()['dbCursor'].execute(queryDesign)
+    elif type(obj) == Shipment:
+        if obj.id == None:
+            queryShipment = ("INSERT INTO Shipment "
+                         "(order_id, carrier, total_price, date_billed) "
+                         "VALUES ('{}','{}','{}','{}')"
+                         .format(obj.order.id, obj.carrier, obj.totalPrice, obj.dateBilled))
+            globals()['dbCursor'].execute(queryShipment)
+        else:
+            pass
 
     globals()['dbConnection'].commit()
 
@@ -79,6 +99,8 @@ def retrieve(dataType, searchId = None):
         return get_order(searchId)
     elif dataType == Material:
         return get_material(searchId)
+    elif dataType == Shipment:
+        return get_shipment(searchId)
 
 def get_customer(searchId = None):
     if searchId == None: # list
@@ -117,9 +139,10 @@ def get_vendor(searchId = None):
 def get_material(searchId = None):
     if searchId == None:
         globals()['dbCursor'].execute('SELECT * FROM Materials')
+        mats = globals()['dbCursor'].fetchall()
         ret = []
 
-        for (id, name, vendor_id, quantity, price) in globals()['dbCursor']:
+        for (id, name, vendor_id, quantity, price) in mats:
             ret.append(Material(id, name, quantity, price, get_vendor(vendor_id)))
         return ret
     else:
@@ -142,16 +165,21 @@ def get_order(searchId = None):
 
         ret = []
         for rowOrder in orders:
-            # globals()['dbCursor'].execute('SELECT * FROM Design WHERE design_id = {}'.format(rowOrder[3]))
-            # rowDesign = globals()['dbCursor'].fetchone()
-            # globals()['dbCursor'].execute('SELECT * FROM Materials WHERE material_id = {}'.format(rowDesign[4]))
-            # rowMaterial = globals()['dbCursor'].fetchone()
-            # globals()['dbCursor'].execute('SELECT * FROM Vendor WHERE vendor_id = {}'.format(rowMaterial[2]))
-            # rowVendor = globals()['dbCursor'].fetchone()
-
             design = get_design(rowOrder[3])
-            ret.append(Order(rowOrder[0], rowOrder[1], design, get_customer(rowOrder[2])))
+            ret.append(Order(rowOrder[0], rowOrder[1], get_customer(rowOrder[2]), design, str(rowOrder[4])))
         
         return ret
     else: # object by searchId
-        pass
+        globals()['dbCursor'].execute("SELECT * FROM Orders WHERE order_id = '{}'".format(searchId))
+        rowOrder = globals()['dbCursor'].fetchone()
+        return Order(rowOrder[0], rowOrder[1], get_customer(rowOrder[2]), get_design(rowOrder[3]), str(rowOrder[4]))
+
+def get_shipment(searchId = None):
+    globals()['dbCursor'].execute('SELECT * FROM Shipment')
+    orders = globals()['dbCursor'].fetchall()
+
+    ret = []
+    for (id, orderId, carrier, totalPrice, dateBilled) in orders:
+        ret.append(Shipment(id, get_order(orderId), carrier, totalPrice, dateBilled))
+    
+    return ret
