@@ -66,14 +66,7 @@ class CustomerListing:
 
     def regenerate_table(self):
         cols = ['ID', 'Name', 'Phone Number', 'E-Mail Address', 'City/State']
-        # self.table = Table(self.tableWindow, len(self.customerList), 5, (self.tableWinSize[1]//5) - 1, self.tableWinSize[1], self.tableWinSize[0] - 3, col_names = True, spacing = 1)
         self.table = create_table(self.tableWindow, cols, len(self.customerList))
-
-        # self.table.set_column_header("ID", 0)
-        # self.table.set_column_header("Name", 1)
-        # self.table.set_column_header("Phone Number", 2)
-        # self.table.set_column_header("E-mail Address", 3)
-        # self.table.set_column_header("City/State", 4)
 
         idx = 0
         for cust in self.customerList:

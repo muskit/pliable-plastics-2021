@@ -26,7 +26,7 @@ def pp_main(screen):
 		("Customers", State.CUSTOMER),
 		("Orders", State.ORDER),
 		# ("Designs", State.DESIGN),
-		("Production", State.PRODUCTION),
+		# ("Production", State.PRODUCTION),
 		("Shipping", State.SHIPPING),
 		("Manage Materials", State.MATERIALS),
 		("Exit", State.EXIT)
